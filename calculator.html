@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculator with %</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #ff9ff3);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+      overflow: hidden;
+    }
+
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .calculator {
+      background: rgba(30, 30, 50, 0.95);
+      backdrop-filter: blur(15px);
+      padding: 25px;
+      border-radius: 25px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      width: 340px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .calculator::before {
+      content: '';
+      position: absolute;
+      top: -2px; left: -2px; right: -2px; bottom: -2px;
+      background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #1dd1a1, #ff9ff3, #5f27cd);
+      background-size: 400%;
+      z-index: -1;
+      border-radius: 27px;
+      animation: borderGlow 10s ease infinite;
+    }
+
+    @keyframes borderGlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .display {
+      background: rgba(20, 20, 40, 0.9);
+      color: #fff;
+      font-size: 2.4rem;
+      text-align: right;
+      padding: 22px;
+      border-radius: 15px;
+      margin-bottom: 18px;
+      min-height: 75px;
+      overflow: hidden;
+      word-break: break-all;
+      box-shadow: inset 0 6px 12px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 500;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    button {
+      padding: 20px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      position: relative;
+      overflow: hidden;
+      color: white;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    button:hover::before {
+      opacity: 1;
+    }
+
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+    }
+
+    .number, .decimal {
+      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    }
+
+    .operator {
+      background: linear-gradient(135deg, #fd79a8, #fdcb6e);
+    }
+
+    .equals {
+      background: linear-gradient(135deg, #00b894, #00cec9);
+      grid-column: span 2;
+    }
+
+    .clear {
+      background: linear-gradient(135deg, #e17055, #f39c12);
+      grid-column: span 2;
+    }
+
+    .percent {
+      background: linear-gradient(135deg, #f368e0, #e056fd);
+    }
+
+    .zero {
+      grid-column: span 2;
+    }
+
+    .number:hover { background: linear-gradient(135deg, #a29bfe, #6c5ce7); }
+    .operator:hover { background: linear-gradient(135deg, #fdcb6e, #fd79a8); }
+    .equals:hover { background: linear-gradient(135deg, #00cec9, #00b894); }
+    .clear:hover { background: linear-gradient(135deg, #f39c12, #e17055); }
+    .percent:hover { background: linear-gradient(135deg, #e056fd, #f368e0); }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.6);
+      transform: scale(0);
+      animation: rippleAnim 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes rippleAnim {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="calculator">
+    <div class="display" id="display">0</div>
+    <div class="buttons">
+      <button class="clear" onclick="clearDisplay(event)">C</button>
+      <button class="percent" onclick="appendToDisplay('%', event)">%</button>
+      <button class="operator" onclick="appendToDisplay('/', event)">/</button>
+      <button class="operator" onclick="appendToDisplay('*', event)">×</button>
+
+      <button class="number" onclick="appendToDisplay('7', event)">7</button>
+      <button class="number" onclick="appendToDisplay('8', event)">8</button>
+      <button class="number" onclick="appendToDisplay('9', event)">9</button>
+      <button class="operator" onclick="appendToDisplay('-', event)">−</button>
+
+      <button class="number" onclick="appendToDisplay('4', event)">4</button>
+      <button class="number" onclick="appendToDisplay('5', event)">5</button>
+      <button class="number" onclick="appendToDisplay('6', event)">6</button>
+      <button class="operator" onclick="appendToDisplay('+', event)">+</button>
+
+      <button class="number" onclick="appendToDisplay('1', event)">1</button>
+      <button class="number" onclick="appendToDisplay('2', event)">2</button>
+      <button class="number" onclick="appendToDisplay('3', event)">3</button>
+      <button class="equals" onclick="calculate(event)">=</button>
+
+      <button class="number zero" onclick="appendToDisplay('0', event)">0</button>
+      <button class="decimal" onclick="appendToDisplay('.', event)">.</button>
+    </div>
+  </div>
+
+  <script>
+    let display = document.getElementById('display');
+    let currentInput = '0';
+    let shouldResetDisplay = false;
+
+    function updateDisplay() {
+      display.textContent = currentInput;
+    }
+
+    function appendToDisplay(value, event) {
+      createRipple(event);
+      if (shouldResetDisplay) {
+        currentInput = '0';
+        shouldResetDisplay = false;
+      }
+      if (currentInput === '0' && value !== '.' && value !== '%') {
+        currentInput = value;
+      } else {
+        currentInput += value;
+      }
+      updateDisplay();
+    }
+
+    function clearDisplay(event) {
+      createRipple(event);
+      currentInput = '0';
+      shouldResetDisplay = false;
+      updateDisplay();
+    }
+
+    function calculate(event) {
+      createRipple(event);
+      try {
+        let expression = currentInput.replace(/×/g, '*');
+
+        // Handle % correctly
+        expression = expression.replace(/(\d+\.?\d*)%/g, (match, num) => {
+          return `(${num}/100)`;
+        });
+
+        // Special handling: % after operator means percentage of previous number
+        // e.g., 50+20% → 50 + (50 * 20 / 100)
+        const operatorPercentRegex = /([+\-*/])(\d+\.?\d*)%/g;
+        expression = expression.replace(operatorPercentRegex, (match, op, num) => {
+          return `${op}(prev*${num}/100)`;
+        });
+
+        // We'll use a custom evaluator with 'prev' logic
+        let result = customEval(expression);
+        currentInput = formatResult(result);
+        shouldResetDisplay = true;
+        updateDisplay();
+      } catch (error) {
+        currentInput = 'Error';
+        shouldResetDisplay = true;
+        updateDisplay();
+      }
+    }
+
+    // Custom evaluator to handle 'prev' in % calculations
+    function customEval(expr) {
+      let prev = null;
+      let currentOp = null;
+
+      // Tokenize and process
+      const tokens = expr.match(/[\d.]+|[+\-*/()]|/g) || [];
+      let i = 0;
+
+      function parseExpression() {
+        let value = parseTerm();
+        while (i < tokens.length && (tokens[i] === '+' || tokens[i] === '-')) {
+          const op = tokens[i++];
+          const nextValue = parseTerm();
+          if (op === '+') value += nextValue;
+          if (op === '-') value -= nextValue;
+        }
+        return value;
+      }
+
+      function parseTerm() {
+        let value = parseFactor();
+        while (i < tokens.length && (tokens[i] === '*' || tokens[i] === '/')) {
+          const op = tokens[i++];
+          const nextValue = parseFactor();
+          if (op === '*') value *= nextValue;
+          if (op === '/') value /= nextValue;
+        }
+        return value;
+      }
+
+      function parseFactor() {
+        if (tokens[i] === '(') {
+          i++; // skip (
+          const value = parseExpression();
+          i++; // skip )
+          return value;
+        }
+        if (tokens[i] === 'prev') {
+          i++;
+          if (prev === null) throw new Error("No previous value");
+          return prev;
+        }
+        const num = parseFloat(tokens[i++]);
+        if (isNaN(num)) throw new Error("Invalid number");
+        return num;
+      }
+
+      // First pass: find last operator before %
+      let lastOpIndex = -1;
+      let hasPercentAfterOp = false;
+      for (let j = 0; j < tokens.length; j++) {
+        if (['+', '-', '*', '/'].includes(tokens[j])) {
+          lastOpIndex = j;
+        }
+        if (tokens[j] === '%' && lastOpIndex !== -1) {
+          hasPercentAfterOp = true;
+        }
+      }
+
+      // If % is after an operator, use previous number
+      if (hasPercentAfterOp && lastOpIndex !== -1) {
+        // Extract number before operator
+        let numStr = '';
+        for (let j = lastOpIndex - 1; j >= 0; j--) {
+          if (/[\d.]/.test(tokens[j])) {
+            numStr = tokens[j] + numStr;
+          } else break;
+        }
+        prev = parseFloat(numStr) || 0;
+      }
+
+      return parseExpression();
+    }
+
+    function formatResult(num) {
+      if (isNaN(num)) return 'Error';
+      const str = parseFloat(num.toFixed(8)).toString();
+      return str.endsWith('.0') ? str.slice(0, -2) : str;
+    }
+
+    // Ripple effect
+    function createRipple(event) {
+      const button = event.currentTarget;
+      const ripple = document.createElement('span');
+      const rect = button.getBoundingClientRect();
+      const size = Math.max(rect.width, rect.height);
+      const x = event.clientX - rect.left - size / 2;
+      const y = event.clientY - rect.top - size / 2;
+
+      ripple.classList.add('ripple');
+      ripple.style.width = ripple.style.height = size + 'px';
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+
+      button.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    }
+
+    // Keyboard support
+    document.addEventListener('keydown', function(e) {
+      if (e.key >= '0' && e.key <= '9') appendToDisplay(e.key);
+      if (e.key === '.') appendToDisplay('.');
+      if (e.key === '%') appendToDisplay('%');
+      if (e.key === '+') appendToDisplay('+');
+      if (e.key === '-') appendToDisplay('-');
+      if (e.key === '*') appendToDisplay('*');
+      if (e.key === '/') appendToDisplay('/');
+      if (e.key === 'Enter' || e.key === '=') calculate();
+      if (e.key === 'Escape' || e.key.toLowerCase() === 'c') clearDisplay();
+    });
+  </script>
+
+</body>
+</html>
