@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Function App</title>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%);
+            --card: rgba(255, 255, 255, 0.25);
+            --text: #333;
+            --input: rgba(255, 255, 255, 0.7);
+            --border: rgba(255, 255, 255, 0.5);
+            --btn: #ff6b6b;
+            --btn-hover: #ff5252;
+            --accent: #1dd1a1;
+            --operator: #ff6b6b;
+            --number: #fff3e0;
+            --clear: #feca57;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 15px;
+            transition: background 0.6s ease;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 420px;
+            margin: 0 auto;
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1) rotate(20deg);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            color: var(--text);
+            font-size: 1.1rem;
+        }
+
+        .tab.active {
+            background: rgba(255, 255, 255, 0.6);
+            border-bottom: 4px solid var(--accent);
+            font-weight: 700;
+        }
+
+        .page {
+            padding: 20px;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Calculator */
+        .calc-display {
+            width: 100%;
+            padding: 20px;
+            font-size: 2.2rem;
+            text-align: right;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: var(--text);
+            backdrop-filter: blur(6px);
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .calc-btn {
+            padding: 18px;
+            border: none;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            background: var(--number);
+            color: var(--text);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(6px);
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .calc-btn.operator {
+            background: var(--operator);
+            color: white;
+        }
+
+        .calc-btn.operator:hover {
+            background: var(--btn-hover);
+        }
+
+        .calc-btn.equals {
+            background: var(--accent);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .calc-btn.clear {
+            background: var(--clear);
+            color: #333;
+            grid-column: span 2;
+        }
+
+        .calc-btn.zero {
+            grid-column: span 2;
+        }
+
+        /* Info Page */
+        .header-box {
+            text-align: center;
+            padding: 18px;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 18px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .clock {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .date {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .weather-box {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 1.1rem;
+            background: var(--input);
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .temp {
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+
+        /* Currency */
+        .currency-section {
+            margin: 20px 0;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .input-row select,
+        .input-row input {
+            flex: 1;
+            padding: 14px;
+            background: var(--input);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text);
+            font-size: 1rem;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-box {
+            padding: 16px;
+            background: var(--input);
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.15rem;
+            border: 1px solid var(--border);
+            margin-top: 10px;
+            color: var(--text);
+        }
+
+        /* Calendar */
+        .calendar {
+            background: var(--input);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+        }
+
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .cal-nav {
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.4rem;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+            font-size: 0.95rem;
+        }
+
+        .cal-day {
+            padding: 10px 6px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            color: var(--text);
+        }
+
+        .cal-day.header {
+            font-weight: 600;
+            color: #aaa;
+            font-size: 0.85rem;
+        }
+
+        .cal-day.today {
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+        }
+
+        .cal-day.other-month {
+            color: #888;
+        }
+
+        /* Themes */
+        body.orange { --bg: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); }
+        body.blue   { --bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body.purple { --bg: linear-gradient(135deg, #9d50bb 0%, #6e48aa 100%); }
+        body.green  { --bg: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        body.pink   { --bg: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%); }
+        body.dark   { 
+            --bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --card: rgba(255, 255, 255, 0.1);
+            --input: rgba(255, 255, 255, 0.15);
+            --text: #eee;
+            --number: rgba(255, 255, 255, 0.2);
+            --border: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="orange">
+
+    <div class="theme-toggle" id="themeToggle">Palette</div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="openPage('calc')">Calculator</div>
+            <div class="tab" onclick="openPage('info')">Info</div>
+        </div>
+
+        <!-- Calculator Page -->
+        <div id="calc" class="page active">
+            <h2 style="text-align:center; margin-bottom:15px; color:var(--text);">Advanced Calculator</h2>
+            <input type="text" id="calcDisplay" class="calc-display" value="0" readonly>
+            <div class="calc-grid">
+                <button class="calc-btn clear" onclick="clearCalc()">C</button>
+                <button class="calc-btn" onclick="deleteLast()">Back</button>
+                <button class="calc-btn operator" onclick="append('%')">%</button>
+                <button class="calc-btn operator" onclick="append('/')">÷</button>
+
+                <button class="calc-btn" onclick="append('7')">7</button>
+                <button class="calc-btn" onclick="append('8')">8</button>
+                <button class="calc-btn" onclick="append('9')">9</button>
+                <button class="calc-btn operator" onclick="append('*')">×</button>
+
+                <button class="calc-btn" onclick="append('4')">4</button>
+                <button class="calc-btn" onclick="append('5')">5</button>
+                <button class="calc-btn" onclick="append('6')">6</button>
+                <button class="calc-btn operator" onclick="append('-')">−</button>
+
+                <button class="calc-btn" onclick="append('1')">1</button>
+                <button class="calc-btn" onclick="append('2')">2</button>
+                <button class="calc-btn" onclick="append('3')">3</button>
+                <button class="calc-btn operator" onclick="append('+')">+</button>
+
+                <button class="calc-btn zero" onclick="append('0')">0</button>
+                <button class="calc-btn" onclick="append('00')">00</button>
+                <button class="calc-btn" onclick="append('.')">.</button>
+                <button class="calc-btn equals" onclick="calculate()">=</button>
+            </div>
+        </div>
+
+        <!-- Info Page -->
+        <div id="info" class="page">
+            <div class="header-box">
+                <div class="clock" id="clock">00:00:00</div>
+                <div class="date" id="date">Monday, January 1</div>
+                <div class="weather-box">
+                    <select id="citySelect" style="background:var(--input); border:1px solid var(--border); padding:8px; border-radius:10px; color:var(--text);">
+                        <option value="16.795,96.155">Yangon, Myanmar</option>
+                        <option value="21.958,96.089">Mandalay, Myanmar</option>
+                        <option value="19.763,96.078">Naypyidaw, Myanmar</option>
+                        <option value="13.756,100.501">Bangkok, Thailand</option>
+                        <option value="1.352,103.819">Singapore</option>
+                        <option value="35.676,139.650">Tokyo, Japan</option>
+                        <option value="51.99,4.21">Naaldwijk, NL</option>
+                    </select>
+                    <span class="temp" id="temp">--°C</span>
+                </div>
+            </div>
+
+            <!-- Currency -->
+            <div class="currency-section">
+                <h3 style="text-align:center; margin-bottom:15px; color:var(--text);">Currency Converter</h3>
+                <div class="input-row">
+                    <input type="number" id="amount" placeholder="Amount" value="100">
+                    <select id="fromCurrency">
+                        <option value="MMK" selected>MMK</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="JPY">JPY</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                        <option value="SGD">SGD</option>
+                        <option value="THB">THB</option>
+                        <option value="KRW">KRW</option>
+                    </select>
+                </div>
+                <div class="input-row">
+                    <select id="toCurrency">
+                        <option value="USD" selected>USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="CNY">CNY</option>
+                        <option value="MMK">MMK</option>
+                        <option value="JPY">JPY</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                        <option value="SGD">SGD</option>
+                        <option value="THB">THB</option>
+                        <option value="KRW">KRW</option>
+                    </select>
+                </div>
+                <div class="result-box" id="currencyResult">
+                    100 MMK = 0.047 USD
+                </div>
+            </div>
+
+            <!-- Calendar -->
+            <div class="calendar">
+                <div class="cal-header">
+                    <button class="cal-nav" onclick="prevMonth()">Previous</button>
+                    <span id="calMonthYear">November 2025</span>
+                    <button class="cal-nav" onclick="nextMonth()">Next</button>
+                </div>
+                <div class="cal-grid">
+                    <div class="cal-day header">Sun</div>
+                    <div class="cal-day header">Mon</div>
+                    <div class="cal-day header">Tue</div>
+                    <div class="cal-day header">Wed</div>
+                    <div class="cal-day header">Thu</div>
+                    <div class="cal-day header">Fri</div>
+                    <div class="cal-day header">Sat</div>
+                </div>
+                <div class="cal-grid" id="calDays"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Exchange Rates (1 USD = ?)
+        const rates = {
+            USD: 1,
+            EUR: 0.95,
+            CNY: 7.18,
+            MMK: 2100,
+            JPY: 153,
+            GBP: 0.82,
+            INR: 84.1,
+            SGD: 1.35,
+            THB: 36.5,
+            KRW: 1385
+        };
+
+        // Tabs
+        function openPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            document.querySelector(`.tab[onclick="openPage('${pageId}')"]`).classList.add('active');
+            if (pageId === 'info') updateWeather();
+        }
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-US', { hour12: false });
+            const date = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('clock').textContent = time;
+            document.getElementById('date').textContent = date;
+        }
+
+        // Weather - User Selectable
+        async function updateWeather() {
+            const [lat, lon] = document.getElementById('citySelect').value.split(',');
+            try {
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m`);
+                const data = await res.json();
+                const temp = Math.round(data.current.temperature_2m);
+                document.getElementById('temp').textContent = `${temp}°C`;
+            } catch {
+                document.getElementById('temp').textContent = '--°C';
+            }
+        }
+
+        // Currency
+        function convertCurrency() {
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const from = document.getElementById('fromCurrency').value;
+            const to = document.getElementById('toCurrency').value;
+            const result = (amount / rates[from]) * rates[to];
+            document.getElementById('currencyResult').textContent = 
+                `${amount.toLocaleString()} ${from} = ${result.toFixed(4)} ${to}`;
+        }
+
+        // Calculator
+        let calcExpression = '';
+        function append(val) {
+            if (calcExpression === '0' && val !== '.') calcExpression = '';
+            calcExpression += val;
+            document.getElementById('calcDisplay').value = calcExpression;
+        }
+        function clearCalc() {
+            calcExpression = '';
+            document.getElementById('calcDisplay').value = '0';
+        }
+        function deleteLast() {
+            calcExpression = calcExpression.slice(0, -1);
+            document.getElementById('calcDisplay').value = calcExpression || '0';
+        }
+        function calculate() {
+            try {
+                const result = eval(calcExpression.replace('×', '*').replace('÷', '/'));
+                document.getElementById('calcDisplay').value = result;
+                calcExpression = result.toString();
+            } catch {
+                document.getElementById('calcDisplay').value = 'Error';
+                setTimeout(clearCalc, 1000);
+            }
+        }
+
+        // Calendar
+        let currentMonth = new Date().getMonth();
+        let currentYear = new Date().getFullYear();
+
+        function renderCalendar() {
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+            document.getElementById('calMonthYear').textContent = 
+                `${new Date(currentYear, currentMonth).toLocaleString('default', { month: 'long' })} ${currentYear}`;
+
+            const days = document.getElementById('calDays');
+            days.innerHTML = '';
+
+            const prevMonthDays = new Date(currentYear, currentMonth, 0).getDate();
+            for (let i = firstDay - 1; i >= 0; i--) {
+                const day = prevMonthDays - i;
+                const dayEl = document.createElement('div');
+                dayEl.className = 'cal-day other-month';
+                dayEl.textContent = day;
+                days.appendChild(dayEl);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+                const dayEl = document.createElement('div');
+                dayEl.className = 'cal-day';
+                if (dateStr === todayStr) dayEl.classList.add('today');
+                dayEl.textContent = day;
+                days.appendChild(dayEl);
+            }
+
+            const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            const remaining = totalCells - (firstDay + daysInMonth);
+            for (let i = 1; i <= remaining; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'cal-day other-month';
+                dayEl.textContent = i;
+                days.appendChild(dayEl);
+            }
+        }
+
+        function prevMonth() {
+            currentMonth--;
+            if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+            renderCalendar();
+        }
+
+        function nextMonth() {
+            currentMonth++;
+            if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+            renderCalendar();
+        }
+
+        // Theme
+        const themes = ['orange', 'blue', 'purple', 'green', 'pink', 'dark'];
+        let themeIdx = 0;
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            themeIdx = (themeIdx + 1) % themes.length;
+            document.body.className = themes[themeIdx];
+        });
+
+        // Keyboard
+        document.addEventListener('keydown', e => {
+            if (document.getElementById('calc').classList.contains('active')) {
+                if (e.key >= '0' && e.key <= '9') append(e.key);
+                if (e.key === '.') append('.');
+                if (e.key === '+') append('+');
+                if (e.key === '-') append('-');
+                if (e.key === '*') append('*');
+                if (e.key === '/') append('/');
+                if (e.key === '%') append('%');
+                if (e.key === 'Enter') calculate();
+                if (e.key === 'Escape') clearCalc();
+                if (e.key === 'Backspace') deleteLast();
+            }
+        });
+
+        // Init
+        updateClock();
+        setInterval(updateClock, 1000);
+        updateWeather();
+        renderCalendar();
+        convertCurrency();
+
+        // Listeners
+        document.getElementById('citySelect').addEventListener('change', updateWeather);
+        ['amount', 'fromCurrency', 'toCurrency'].forEach(id => {
+            document.getElementById(id).addEventListener('input', convertCurrency);
+            document.getElementById(id).addEventListener('change', convertCurrency);
+        });
+    </script>
+</body>
+</html>
